@@ -1,0 +1,23 @@
+name: Open a test pull request
+# Opens a pull request as github-actions[bot], so that Leo's approval can be tested by someone else (docs/53).
+on: workflow_dispatch
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  open:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          b="leo-test-$(date +%s)"
+          git checkout -b "$b"
+          echo "Test line $(date -u +%FT%TZ), added to test Leo approving a pull request." >> notes.md
+          git add notes.md
+          git commit -m "Add a test note"
+          git push origin "$b"
+          gh pr create --base main --head "$b" --title "Add a test note" --body "Opened by a bot to test Leo approving a pull request from Teams."
